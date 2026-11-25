@@ -11,7 +11,9 @@
 
   // QQ 空间这批 CGI 返回 GBK，必须显式解码
   const dec = new TextDecoder("gbk");
-  const base = "/proxy/domain/b.qzone.qq.com/cgi-bin/privateblog/privateblog_output_data?uin=" + UIN + "&blogid=";
+  // 必须用 location.origin 拼绝对地址：页面里有 <base href="https://qzs.qq.com/">，
+  // 写相对路径会被解析成 qzs.qq.com → 跨域 → "Failed to fetch"。
+  const base = location.origin + "/proxy/domain/b.qzone.qq.com/cgi-bin/privateblog/privateblog_output_data?uin=" + UIN + "&blogid=";
   const tail = "&pwd2sig=&styledm=qzonestyle.gtimg.cn&imgdm=qzs.qq.com&bdm=b.qzone.qq.com&rs=";
 
   // HTML → 纯文本：保留段落结构，去掉脚本样式，解实体

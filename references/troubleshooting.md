@@ -24,6 +24,17 @@
 - **诊断**：`location.href` 里出现 `ptlogin` / `login` 字样。
 - **修法**：让用户在同一个浏览器里手动打开一次 `user.qzone.qq.com`，确认登录后重跑。不要试图用账号密码自动登录。
 
+### A4 `Page frames cannot be observed: 0 (about:)`
+
+- **现象**：新会话还没导航时，`cooperate sync` 直接报这个，拿不到 `observation_id`，于是 `navigate` 也缺 observation，卡死。
+- **原因**：agent 标签页还停在 `about:`，没有可观察的文档。
+- **修法**：**不带 `--observation` 直接再跑一次 `navigate`**（导航本身不需要观察，只有确认才需要）：
+  ```bash
+  bsk navigate "https://user.qzone.qq.com/<UIN>/2" --session <sid> --json   # 这一步通常会成功
+  bsk cooperate sync --session <sid> --settle --json                        # 之后才有 observation
+  ```
+  如果第一次带 `--observation` 就成功，那就不用管这条。
+
 ## B. 列表
 
 ### B1 找不到 `#tblog`
@@ -54,6 +65,18 @@
 - **修法**：单独重跑那一页：`PIM.goDirectPage(3)` → 等 → 收；把结果按 `blogid` 去重合并。私密日记删除后编号会跳，属正常。
 
 ## C. 正文
+
+### C0 全部条目 `Failed to fetch`（最坑的一个）
+
+- **现象**：`02-fetch-articles.js` 返回 `empty` == 总条数，`failed` 里清一色 `Failed to fetch`。
+- **诊断**：看一眼页面里有没有 `<base>`：
+  ```js
+  const b = document.querySelector("base"); [location.origin, b && b.href, new URL("/x", document.baseURI).href]
+  ```
+  正常会看到 `base` 是 `https://qzs.qq.com/`，`resolved` 也跟着变成 `qzs.qq.com`。
+- **原因**：页面带 `<base href="https://qzs.qq.com/">`，**相对路径**被解析到另一个域 → 跨域 → 请求被拒。
+- **修法**：接口地址一律用 `location.origin + "/proxy/domain/..."` 拼绝对 URL（脚本已这么写）。
+  同理，任何在该页面里的 `fetch`／`img.src`／`new URL()` 都要小心 `<base>`。
 
 ### C1 正文全是 `ä¸€å®¶...` 这类乱码
 

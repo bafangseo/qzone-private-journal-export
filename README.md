@@ -99,6 +99,9 @@ BSK_AUTO_START=0 bsk navigate "https://user.qzone.qq.com/<UIN>/2" --session <sid
 - `document.getElementById("tblog")` 存在（日志内容都在这个 iframe 里）；
 - iframe 里能找到 `a[rel=private-detail-link]`（私密日记的条目）。
 
+> 若 `cooperate sync` 报 `Page frames cannot be observed: 0 (about:)`（新会话还停在 `about:`），
+> **不带 `--observation` 直接重跑一次 `navigate`** 即可，之后再做 sync。
+
 ### Phase 3 · 收清单（`scripts/01-collect-list.js`）
 
 ```bash
@@ -175,7 +178,9 @@ GET /proxy/domain/b.qzone.qq.com/cgi-bin/privateblog/privateblog_output_data
     &rs=<随机小数>
 ```
 
-- 相对路径即可（同源），**带 `credentials: "include"`**。
+- **必须用 `location.origin` 拼成绝对地址**，**带 `credentials: "include"`**。
+  写相对路径会静默失效：页面里有 `<base href="https://qzs.qq.com/">`，相对地址会被解析到 `qzs.qq.com`，
+  变成跨域请求，报 `TypeError: Failed to fetch`（实测踩过，空正文 100%）。
 - `pwd2sig` 留空：适用于**没开通「私密日志独立密码」**的账号。开了独立密码的需要该签名，本仓库不处理（会拿不到正文）。
 - 返回的是完整正文 HTML，正文容器 `#blogDetailDiv`。
 
@@ -229,6 +234,7 @@ const html = new TextDecoder("gbk").decode(await resp.arrayBuffer());
 | `tab borrow ... timed out waiting for human confirmation` | 借用户标签页要人工确认 | 别借，自己 `session start` + `navigate` |
 | 只收到 30 条 / 只翻到第 2 页 | 「下一页」连点法在第 2 页后失效 | 用 `goDirectPage(n)`，并按 `page=n` + 行数双重校验，每页等满 10 秒 |
 | 正文全乱码 | 用 UTF-8 解了 GBK | `TextDecoder("gbk")` |
+| 全部条目 `Failed to fetch`、空正文 100% | 页面 `<base href="https://qzs.qq.com/">` 把相对路径改写成跨域 | 接口地址用 `location.origin` 拼绝对 URL |
 | 正文为空 / `noBody` | 该账号开了「私密日志独立密码」，或缺 `pwd2sig` | 本仓库不支持，需自行处理密码签名 |
 | 直链 `/blog/<id>` 报「数据不存在或已删除」 | 私密日志不吃直链 | 只走 §4.1 的接口 |
 | `bsk download` 落盘文件名乱码 | 中文路径经 shell 传参 | 先下到 ASCII 临时路径，再 Python 改名移动 |
