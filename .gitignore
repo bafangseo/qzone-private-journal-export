@@ -1,0 +1,14 @@
+# 导出的日志属于高度隐私，别提交上来
+*.txt
+!README.md
+
+# 本地临时文件
+/tmp/
+*.tmp
+*.log
+
+# 编辑器
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
