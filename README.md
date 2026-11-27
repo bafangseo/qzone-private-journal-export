@@ -5,7 +5,7 @@
 > 只导出**你自己账号**的日志。所有请求都发生在你自己浏览器的登录态里，不经过任何第三方服务器。
 
 - 适用对象：能操控浏览器（CDP / 扩展）的 AI agent，或愿意照着步骤点几下的人。
-- 实测规模：百余篇 / 数万字，单轮约 3 分钟跑完。
+- 实测规模：一次可导完单个账号的全部日志，单轮数分钟跑完。
 - 界面语言：QQ 空间中文版（下文的选择器依赖中文 UI 文案，英文界面需自行替换）。
 
 ---
@@ -148,7 +148,7 @@ BSK_AUTO_START=0 bsk download --selector "#qzone-export" --out /tmp/qzone-export
 
 ```python
 import os, shutil
-target_dir = r"D:\我的导出\私密日志"
+target_dir = r"D:\导出\私密日志"
 os.makedirs(target_dir, exist_ok=True)
 shutil.move("/tmp/qzone-export.txt", os.path.join(target_dir, "私密日志.txt"))
 ```
@@ -232,7 +232,7 @@ const html = new TextDecoder("gbk").decode(await resp.arrayBuffer());
 | --- | --- | --- |
 | `permission_denied: requires an unused strict observation from cooperate sync` | 每次 `evaluate` 都要新的观察 ID，用一次即失效 | 每次 evaluate 前先 `cooperate sync`，取**顶层** `observation_id`（不是 `observation.observation_id`） |
 | `tab borrow ... timed out waiting for human confirmation` | 借用户标签页要人工确认 | 别借，自己 `session start` + `navigate` |
-| 只收到 30 条 / 只翻到第 2 页 | 「下一页」连点法在第 2 页后失效 | 用 `goDirectPage(n)`，并按 `page=n` + 行数双重校验，每页等满 10 秒 |
+| 只收到几十条 / 只翻到第 2 页 | 「下一页」连点法在第 2 页后失效 | 用 `goDirectPage(n)`，并按 `page=n` + 行数双重校验，每页等满 10 秒 |
 | 正文全乱码 | 用 UTF-8 解了 GBK | `TextDecoder("gbk")` |
 | 全部条目 `Failed to fetch`、空正文 100% | 页面 `<base href="https://qzs.qq.com/">` 把相对路径改写成跨域 | 接口地址用 `location.origin` 拼绝对 URL |
 | 正文为空 / `noBody` | 该账号开了「私密日志独立密码」，或缺 `pwd2sig` | 本仓库不支持，需自行处理密码签名 |

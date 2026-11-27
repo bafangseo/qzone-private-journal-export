@@ -49,7 +49,7 @@
 - **诊断**：`[...document.querySelectorAll("#tblog")[0].contentDocument.querySelectorAll("a")].map(a=>a.textContent.trim())`
 - **修法**：文案变了就改 `scripts/01-collect-list.js` 里那个 `=== "私密日记"` 的匹配串。
 
-### B3 只收到 30 条 / 只翻到第 2 页
+### B3 只收到几十条 / 只翻到第 2 页
 
 - **原因**：用「连点下一页」翻页，第二次之后失效。
 - **修法**：改用 `QZBlog.Util.PageIndexManager.goDirectPage(n)`。
